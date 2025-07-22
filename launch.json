@@ -15,6 +15,23 @@
             "cwd": "${workspaceRoot}/maui/src/Controls/samples/Controls.Sample",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
+        },
+        {   // install VSCode Cake extension for source-level debugging of the cake script
+            "name": "Cake Build Script (InstallWorkload)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${env:HOME}/.nuget/packages/cake.tool/4.0.0/tools/net8.0/any/Cake.dll",
+            "args": [
+                "${workspaceRoot}/maui/build.cake",
+                "--target=dotnet-build",
+                "--workloads=GtkSharp",
+                "--gtk",
+                "--debug",
+                "--verbosity=diagnostic"
+            ],
+            "cwd": "${workspaceRoot}/maui",
+            "stopAtEntry": false,
+            "externalConsole": false
         }
     ]
 }

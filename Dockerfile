@@ -21,7 +21,7 @@ RUN chown $USERNAME:$USERNAME /mauienv
 USER $USERNAME
 
 WORKDIR /mauienv
-COPY  launch.json .vscode/launch.json
+#COPY  launch.json .vscode/launch.json
 COPY tasks.json .vscode/tasks.json
 # TODO: add .vs-code volume
 
@@ -44,15 +44,23 @@ RUN apt update
 RUN apt install -y libgtk-3-dev libgtksourceview-4-0
 RUN dotnet new install GtkSharp.Template.CSharp
 USER $USERNAME
+WORKDIR /mauienv
+
+# XXXXXXXXXXXXXXXXXXXXX ^
+WORKDIR /mauienv
+COPY  launch.json .vscode/launch.json
+
+WORKDIR /mauienv/maui
+RUN dotnet  tool restore
 
 # ___ 1st Option: Persistent Volume Share on Local Host with Bare Docker Setup ___
 # if you want to maintain a maui folder locally, mapped as a container volume to persist changes done in the container,
 # git clone https://github.com/lytico/maui in the maui-docker folder and make sure it is mounted everytime you run the container, 
 # using the docker run -v option or VS Code with devcontainer extension that is provided in this repo. further instructions below:
-RUN echo 'cd maui \n sed -i "s/>true<\/_Include/><\/_Include/g" Directory.Build.Override.props.in \n sed -i "s/_IncludeGtk></_IncludeGtk>true</g" Directory.Build.Override.props.in \n cp Directory.Build.Override.props.in Directory.Build.Override.props \n dotnet build Microsoft.Maui.BuildTasks.slnf \n dotnet build Microsoft.Maui.Gtk.slnf \n apt clean \n echo "done building maui; now  cd maui/src/Controls/samples/Controls.Sample  and  dotnet run --framework net8.0-gtk"' > build-gtk-platform.sh ; chmod a+x build-gtk-platform.sh
+RUN echo 'cd maui \n dotnet tool restore \n dotnet cake --target=dotnet-build --workloads=GtkSharp --gtk \n echo "done building maui; now  cd maui/src/Controls/samples/Controls.Sample  and  dotnet run --framework net8.0-gtk"' > /mauienv/build-gtk-platform.sh ; chmod a+x /mauienv/build-gtk-platform.sh
 # 1. open a terminal; cd into the maui-docker folder and (re)build the docker image with the command docker build -t maui-env .
 # 2. start the container using:
-# xhost + & docker run -it --rm -e DISPLAY=$DISPLAY -v "$HOME/maui-docker/maui:/mauienv/maui" -v /tmp/.X11-unix:/tmp/.X11-unix -t maui-env bash
+# xhost + & docker run -it --rm -e DISPLAY=$DISPLAY -v "$HOME/maui-devcontainer/maui:/mauienv/maui" -v /tmp/.X11-unix:/tmp/.X11-unix -t maui-env bash
 # 3. inside the container start ./build-gtk-platform.sh
 
 # ___ 2nd Option: VS Code from the Local Linux (or WSL) ___
